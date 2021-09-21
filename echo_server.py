@@ -12,6 +12,7 @@ import argparse
 import socket
 
 
+
 def main():
     parser = argparse.ArgumentParser()
     reverse = False
@@ -47,11 +48,12 @@ def main():
             if reverse == True:
                 #reverse
                 r_response = response[::-1]
-                clientsocket.send(r_response)
+                r_response = r_response.strip()
+                clientsocket.send(r_response )
+                print("/n")
             else:
                 clientsocket.send(response)
         clientsocket.close()
-        serversocket.close()
 
 
 
