@@ -50,8 +50,10 @@ def main():
                 clientsocket.send(r_response)
             else:
                 clientsocket.send(response)
-        serversocket.close()
         clientsocket.close()
+        serversocket.close()
+
+
 
 
 
