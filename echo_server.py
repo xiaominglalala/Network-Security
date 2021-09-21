@@ -50,7 +50,7 @@ def main():
                 r_response = response[::-1]
                 r_response = r_response.strip()
                 clientsocket.send(r_response )
-                print("/n")
+                print("\n")
             else:
                 clientsocket.send(response)
         clientsocket.close()
