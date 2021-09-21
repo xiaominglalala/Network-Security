@@ -48,9 +48,9 @@ def main():
             if reverse == True:
                 #reverse
                 r_response = response[::-1]
-                r_response = r_response.strip()
+                r_response = r_response.lstrip()
+                r_response = r_response + '\n'
                 clientsocket.send(r_response )
-                print("\n")
             else:
                 clientsocket.send(response)
         clientsocket.close()
