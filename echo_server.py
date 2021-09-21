@@ -49,7 +49,7 @@ def main():
                 #reverse
                 r_response = response[::-1]
                 r_response = r_response.lstrip()
-                r_response = r_response + '\n'
+                r_response = r_response + b"\n"
                 clientsocket.send(r_response )
             else:
                 clientsocket.send(response)
