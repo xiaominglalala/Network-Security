@@ -1,0 +1,8 @@
+syntax = "proto2";
+
+package tutorial;
+
+message broadcastMsg{
+    required string nickname = 1;
+    required string message = 2;
+}
