@@ -41,7 +41,7 @@ def main():
                     break
                 broadcastMsg = broadcastMsg_pb2.broadcastMsg()
                 broadcastMsg.ParseFromString(message)
-                print("%s: %s\n" % (broadcastMsg.nickname, broadcastMsg.essage), flush=True)
+                print("%s: %s\n" % (broadcastMsg.nickname, broadcastMsg.message), flush=True)
             # new data from STDIN
             else:
                 user_input = input()
