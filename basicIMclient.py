@@ -20,7 +20,7 @@ def main():
     parser = argparse.ArgumentParser()
 
     # add a required argument, which can either be specified
-    parser.add_argument('-s', '--severname', dest='severname', help='type severname', required=True)
+    parser.add_argument('-s', '--server', dest='server', help='type severname', required=True)
     parser.add_argument('-n', '--nickname', dest='nickname', help='type nickname', required=True)
 
     args = parser.parse_args()
