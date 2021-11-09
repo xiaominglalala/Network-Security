@@ -89,10 +89,12 @@ def main():
 
                 test_mac = HMAC.new(auth_key, digestmod=SHA256)
                 test_mac.update(serialIM)
+
                 try:
                     test_mac.verify(plaintextAndMacPackage.mac)
+                    print("Verified")
                     print("%s: %s" % (im.nickname, im.message))
-                except:
+                except ValueError as e:
                     print("ERROR! Received message that could not be authenticated!")
 
             # new data from STDIN
