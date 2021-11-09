@@ -50,7 +50,7 @@ def solve_EP(iv, conf_key, PT_string):
 def main():
     parser = argparse.ArgumentParser()
     # add required arguments
-    parser.add_argument('-p', dest='port', help='port number', required=True)
+    parser.add_argument('-p', dest='port', help='port number', required=True, type = int)
     parser.add_argument('-s', dest='servername', help='name of the server', required=True)
     parser.add_argument('-n', dest='nickname', help='your nickname', required=True)
     parser.add_argument('-c', dest='conf_key', help='confidentiality key', required=True)
