@@ -17,6 +17,7 @@ import socket
 import sys
 import select
 import struct
+from base64 import b64decode
 
 
 
@@ -78,13 +79,16 @@ def main():
 
                 encrypted_package = encrypted_package_pb2.EncryptedPackage()
                 encrypted_package.ParseFromString(protobuf)
-                cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
-                try:
-                    unpad(cipher.decrypt(encrypted_package.encryptedMessage), AES.block_size)
-                except ValueError as e:
-                    print("ERROR! Received message that could not be authenticated!")
-                serialPlain = unpad(cipher.decrypt(encrypted_package.encryptedMessage), AES.block_size)
 
+                cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
+
+                try:
+                    plaintext = cipher.decrypt(encrypted_package.encryptedMessage)
+                    serialPlain = unpad(plaintext, AES.block_size)
+                except:
+                    print("ERROR! Received message that could not be decrypted!")
+                plaintext = cipher.decrypt(encrypted_package.encryptedMessage)
+                serialPlain = unpad(plaintext, AES.block_size)
                 plaintextAndMacPackage = encrypted_package_pb2.PlaintextAndMAC()
                 plaintextAndMacPackage.ParseFromString(serialPlain)
                 serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
@@ -97,7 +101,7 @@ def main():
                 try:
                     test_mac.verify(plaintextAndMacPackage.mac)
                     print("%s: %s" % (im.nickname, im.message))
-                except ValueError as e:
+                except:
                     print("ERROR! Received message that could not be authenticated!")
 
             # new data from STDIN
