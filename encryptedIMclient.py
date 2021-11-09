@@ -79,6 +79,10 @@ def main():
                 encrypted_package = encrypted_package_pb2.EncryptedPackage()
                 encrypted_package.ParseFromString(protobuf)
                 cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
+                try:
+                    unpad(cipher.decrypt(encrypted_package.encryptedMessage), AES.block_size)
+                except ValueError as e:
+                    print("ERROR! Received message that could not be authenticated!")
                 serialPlain = unpad(cipher.decrypt(encrypted_package.encryptedMessage), AES.block_size)
 
                 plaintextAndMacPackage = encrypted_package_pb2.PlaintextAndMAC()
@@ -92,7 +96,6 @@ def main():
 
                 try:
                     test_mac.verify(plaintextAndMacPackage.mac)
-                    print("Verified")
                     print("%s: %s" % (im.nickname, im.message))
                 except ValueError as e:
                     print("ERROR! Received message that could not be authenticated!")
