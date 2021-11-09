@@ -46,6 +46,17 @@ def solve_EP(iv, conf_key, PT_string):
     EP_string = encrypted_package.SerializeToString()
     return EP_string
 
+def error_dec(protobuf, conf_key):
+    encrypted_package = encrypted_package_pb2.EncryptedPackage()
+    plaintextAndMacPackage = encrypted_package_pb2.PlaintextAndMAC()
+    try:
+        encrypted_package.ParseFromString(protobuf)
+        cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
+        plaintext = cipher.decrypt(encrypted_package.encryptedMessage)
+        plaintextAndMacPackage.ParseFromString(unpad(plaintext, AES.block_size))
+    except:
+        print("ERROR! Received message that could not be decrypted!")
+    return plaintextAndMacPackage
 
 
 def main():
@@ -77,21 +88,10 @@ def main():
                 data_len = struct.unpack('!L', data_len_packed)[0]
                 protobuf = i.recv(data_len, socket.MSG_WAITALL)
 
-                encrypted_package = encrypted_package_pb2.EncryptedPackage()
-                encrypted_package.ParseFromString(protobuf)
-
-                cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
-
-                try:
-                    plaintext = cipher.decrypt(encrypted_package.encryptedMessage)
-                    serialPlain = unpad(plaintext, AES.block_size)
-                except:
-                    print("ERROR! Received message that could not be decrypted!")
-                plaintext = cipher.decrypt(encrypted_package.encryptedMessage)
-                serialPlain = unpad(plaintext, AES.block_size)
-                plaintextAndMacPackage = encrypted_package_pb2.PlaintextAndMAC()
-                plaintextAndMacPackage.ParseFromString(serialPlain)
+                plaintextAndMacPackage= error_dec(protobuf, conf_key)
                 serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
+
+
                 im = encrypted_package_pb2.IM()
                 im.ParseFromString(serialIM)
 
