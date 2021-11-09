@@ -49,11 +49,10 @@ def solve_EP(iv, conf_key, PT_string):
 def error_dec(protobuf, conf_key):
     encrypted_package = encrypted_package_pb2.EncryptedPackage()
     plaintextAndMacPackage = encrypted_package_pb2.PlaintextAndMAC()
+    encrypted_package.ParseFromString(protobuf)
+    cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
     try:
-        encrypted_package.ParseFromString(protobuf)
-        cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
-        plaintext = cipher.decrypt(encrypted_package.encryptedMessage)
-        plaintextAndMacPackage.ParseFromString(unpad(plaintext, AES.block_size))
+        plaintextAndMacPackage.ParseFromString(unpad(cipher.decrypt(encrypted_package.encryptedMessage), AES.block_size))
     except:
         print("ERROR! Received message that could not be decrypted!")
     return plaintextAndMacPackage
@@ -88,7 +87,7 @@ def main():
                 data_len = struct.unpack('!L', data_len_packed)[0]
                 protobuf = i.recv(data_len, socket.MSG_WAITALL)
 
-                plaintextAndMacPackage= error_dec(protobuf, conf_key)
+                plaintextAndMacPackage =  error_dec(protobuf, conf_key)
                 serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
 
 
