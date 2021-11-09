@@ -91,7 +91,7 @@ def main():
                 test_mac.update(serialIM)
                 try:
                     test_mac.verify(plaintextAndMacPackage.mac)
-                    print("(%s,%s)" % (im.nickname, im.message))
+                    print("%s: %s" % (im.nickname, im.message))
                 except:
                     print("ERROR! Received message that could not be authenticated!")
 
