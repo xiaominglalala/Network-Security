@@ -17,7 +17,7 @@ import socket
 import sys
 import select
 import struct
-from base64 import b64decode
+
 
 
 
@@ -57,6 +57,15 @@ def error_dec(protobuf, conf_key):
         print("ERROR! Received message that could not be decrypted!")
     return plaintextAndMacPackage
 
+def HMAC_verify(auth_key, plaintextAndMacPackage):
+    test_hmac = HMAC.new(auth_key, plaintextAndMacPackage.paddedPlaintext, digestmod=SHA256)
+    try:
+        test_hmac.verify(plaintextAndMacPackage.mac)
+        return True
+    except ValueError:
+        print("ERROR! Received message that could not be authenticated!")
+        return False
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -85,23 +94,16 @@ def main():
             if i == s:
                 data_len_packed = i.recv(4, socket.MSG_WAITALL)
                 data_len = struct.unpack('!L', data_len_packed)[0]
-                protobuf = i.recv(data_len, socket.MSG_WAITALL)
+                data= i.recv(data_len, socket.MSG_WAITALL)
 
-                plaintextAndMacPackage =  error_dec(protobuf, conf_key)
-                serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
+                plaintextAndMacPackage =  error_dec(data, conf_key)
 
+                #serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
 
-                im = encrypted_package_pb2.IM()
-                im.ParseFromString(serialIM)
-
-                test_mac = HMAC.new(auth_key, digestmod=SHA256)
-                test_mac.update(serialIM)
-
-                try:
-                    test_mac.verify(plaintextAndMacPackage.mac)
+                if HMAC_verify(auth_key, plaintextAndMacPackage):
+                    im = encrypted_package_pb2.IM()
+                    im.ParseFromString(plaintextAndMacPackage.paddedPlaintext)
                     print("%s: %s" % (im.nickname, im.message))
-                except:
-                    print("ERROR! Received message that could not be authenticated!")
 
             # new data from STDIN
             else:
