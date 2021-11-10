@@ -102,7 +102,8 @@ def main():
 
                 if HMAC_verify(auth_key, plaintextAndMacPackage):
                     im = encrypted_package_pb2.IM()
-                    im.ParseFromString(plaintextAndMacPackage.paddedPlaintext)
+                    serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
+                    im.ParseFromString(serialIM)
                     print("%s: %s" % (im.nickname, im.message))
 
             # new data from STDIN
