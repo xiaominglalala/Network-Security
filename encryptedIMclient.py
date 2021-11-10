@@ -51,11 +51,15 @@ def error_dec(protobuf, conf_key):
     plaintextAndMacPackage = encrypted_package_pb2.PlaintextAndMAC()
     encrypted_package.ParseFromString(protobuf)
     cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
+    flag = True
     try:
         plaintextAndMacPackage.ParseFromString(unpad(cipher.decrypt(encrypted_package.encryptedMessage), AES.block_size))
+        return plaintextAndMacPackage, flag
     except:
+        flag = False
         print("ERROR! Received message that could not be decrypted!")
-    return plaintextAndMacPackage
+        return plaintextAndMacPackage, flag
+
 
 def HMAC_verify(auth_key, serialIM, plaintextAndMacPackage):
     test_hmac = HMAC.new(auth_key, digestmod=SHA256)
@@ -98,15 +102,16 @@ def main():
                 data_len = struct.unpack('!L', data_len_packed)[0]
                 data= i.recv(data_len, socket.MSG_WAITALL)
 
-                plaintextAndMacPackage =  error_dec(data, conf_key)
+                plaintextAndMacPackage, flag =  error_dec(data, conf_key)
 
-                serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
+                if flag == True:
+                    serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
 
-                if HMAC_verify(auth_key, serialIM, plaintextAndMacPackage):
-                    im = encrypted_package_pb2.IM()
-                    #serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
-                    im.ParseFromString(serialIM)
-                    print("%s: %s" % (im.nickname, im.message))
+                    if HMAC_verify(auth_key, serialIM, plaintextAndMacPackage):
+                        im = encrypted_package_pb2.IM()
+                        # serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
+                        im.ParseFromString(serialIM)
+                        print("%s: %s" % (im.nickname, im.message))
 
             # new data from STDIN
             else:
