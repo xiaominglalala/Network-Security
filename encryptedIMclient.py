@@ -46,30 +46,30 @@ def solve_EP(iv, conf_key, PT_string):
     EP_string = encrypted_package.SerializeToString()
     return EP_string
 
-def error_dec(protobuf, conf_key):
+def error_dec(data, conf_key):
     encrypted_package = encrypted_package_pb2.EncryptedPackage()
-    plaintextAndMacPackage = encrypted_package_pb2.PlaintextAndMAC()
-    encrypted_package.ParseFromString(protobuf)
+    plaintextAndMac = encrypted_package_pb2.PlaintextAndMAC()
+    encrypted_package.ParseFromString(data)
     cipher = AES.new(conf_key, AES.MODE_CBC, iv=encrypted_package.iv)
     flag = True
     try:
-        plaintextAndMacPackage.ParseFromString(unpad(cipher.decrypt(encrypted_package.encryptedMessage), AES.block_size))
-        return plaintextAndMacPackage, flag
+        plaintextAndMac.ParseFromString(unpad(cipher.decrypt(encrypted_package.encryptedMessage), AES.block_size))
+        return plaintextAndMac, flag
     except:
         flag = False
-        print("ERROR! Received message that could not be decrypted!")
-        return plaintextAndMacPackage, flag
+        print("ERROR! Some people try to join the chat without the wrong key!")
+        return plaintextAndMac, flag
 
 
-def HMAC_verify(auth_key, serialIM, plaintextAndMacPackage):
+def HMAC_verify(auth_key, serialIM, plaintextAndMac):
     test_hmac = HMAC.new(auth_key, digestmod=SHA256)
     test_hmac.update(serialIM)
 
     try:
-        test_hmac.verify(plaintextAndMacPackage.mac)
+        test_hmac.verify(plaintextAndMac.mac)
         return True
-    except ValueError:
-        print("ERROR! Received message that could not be authenticated!")
+    except:
+        print("ERROR! Some people try to join the chat without the wrong key!")
         return False
 
 
@@ -102,14 +102,13 @@ def main():
                 data_len = struct.unpack('!L', data_len_packed)[0]
                 data= i.recv(data_len, socket.MSG_WAITALL)
 
-                plaintextAndMacPackage, flag =  error_dec(data, conf_key)
+                plaintextAndMac, flag =  error_dec(data, conf_key)
 
                 if flag == True:
-                    serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
+                    serialIM = unpad(plaintextAndMac.paddedPlaintext, AES.block_size)
 
-                    if HMAC_verify(auth_key, serialIM, plaintextAndMacPackage):
+                    if HMAC_verify(auth_key, serialIM, plaintextAndMac):
                         im = encrypted_package_pb2.IM()
-                        # serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
                         im.ParseFromString(serialIM)
                         print("%s: %s" % (im.nickname, im.message))
 
