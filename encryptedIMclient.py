@@ -57,8 +57,10 @@ def error_dec(protobuf, conf_key):
         print("ERROR! Received message that could not be decrypted!")
     return plaintextAndMacPackage
 
-def HMAC_verify(auth_key, plaintextAndMacPackage):
-    test_hmac = HMAC.new(auth_key, plaintextAndMacPackage.paddedPlaintext, digestmod=SHA256)
+def HMAC_verify(auth_key, serialIM, plaintextAndMacPackage):
+    test_hmac = HMAC.new(auth_key, digestmod=SHA256)
+    test_hmac.update(serialIM)
+
     try:
         test_hmac.verify(plaintextAndMacPackage.mac)
         return True
@@ -98,11 +100,11 @@ def main():
 
                 plaintextAndMacPackage =  error_dec(data, conf_key)
 
-                #serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
+                serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
 
-                if HMAC_verify(auth_key, plaintextAndMacPackage):
+                if HMAC_verify(auth_key, serialIM, plaintextAndMacPackage):
                     im = encrypted_package_pb2.IM()
-                    serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
+                    #serialIM = unpad(plaintextAndMacPackage.paddedPlaintext, AES.block_size)
                     im.ParseFromString(serialIM)
                     print("%s: %s" % (im.nickname, im.message))
 
